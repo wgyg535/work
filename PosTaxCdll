@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+#coding=utf-8
+import cx_Oracle
+from ctypes import *
+import os
+import sys
+import time,datetime
+import re
+import logging
+from xml.dom import minidom, Node
+import codecs
+class PosTaxDall:
+    def __init__(self,XmlNm='<Cmd>2</Cmd>'):
+        self.sInXml=XmlNm
+
+    def CallDll(self,XmlNm):
+        #dll=windll.LoadLibrary(r'H:\qry_tax\posAPI_w.dll')
+        dll=cdll.LoadLibrary('./libposapi_x64.so')
+        perform_function=dll.PosTaxControlService
+        #定义输入参数
+        perform_function.argtypes = [c_int, c_char_p,c_int,c_char_p]
+        #定义返回参数
+        perform_function.restype = c_int
+        nInLen = len(self.sInXml)
+        #初始化字符串长度
+        sOutXml =create_string_buffer(4096)
+        #logging.info(sInXml.decode('utf-8').encode('gbk'))
+        logging.info(self.sInXml)
+        #print sInXml.decode('utf-8').encode('gbk')
+        retval = perform_function(nInLen, self.sInXml,4096,sOutXml)
+        result=sOutXml.value
+        return result
+
+
+    def get_sale_taxno(self,inputxml):
+        OutXml=self.CallDll(inputxml)
+        result = re.findall('<PH>(.*?)</PH>',OutXml)
+        logging.info(OutXml)
+        return result[0]
+
+
+    def qry_current_taxno(self,inputxml):
+        OutXml=self.CallDll(inputxml)
+        result = OutXml
+        logging.info(OutXml)
+        return result
+
+    def del_taxno(self,inputxml):
+        OutXml=self.CallDll(inputxml)
+        result = OutXml
+        logging.info(OutXml)
+        return result
+
+    def qry_taxno(self,inputxml):
+        OutXml=self.CallDll(inputxml)
+        result = OutXml
+        logging.info(OutXml)
+        return result
+
+
+def main():
+    #sInXml='<Cmd>2</Cmd><Inv><BH>2025</BH></Inv>'
+    #sInXml='<Cmd>4</Cmd><PH>370705059010254000000000003319</PH>'
+    posser=PosTaxDall(sInXml)
+    rtn = posser.qry_current_taxno(sInXml)
+    print rtn
+    sInXml='<Cmd>4</Cmd><PH>370705059010254000000000003320/PH>'
+    rtn=posser.qry_taxno(sInXml)
+    print rtn
+
+if __name__=='__main__':
+    #main()
+    pass
